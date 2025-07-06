@@ -85,7 +85,6 @@
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen">
     <div class="w-full max-w-sm mx-auto p-4">
-        <!-- Home Screen -->
         <div id="home-screen" class="">
             <div class="bg-white rounded-2xl card-shadow p-8 text-center">
                 <h1 class="text-3xl font-bold text-gray-800">Welcome to KYP</h1>
@@ -105,7 +104,6 @@
             </footer>
         </div>
 
-        <!-- Game Screen (initially hidden) -->
         <div id="game-screen" class="hidden">
             <div class="w-full text-left mb-2">
                  <button id="back-to-home" class="text-gray-600 hover:text-gray-900 font-semibold transition">&larr; Back to Home</button>
@@ -146,15 +144,19 @@
                     <div id="result-icon" class="text-8xl mb-4"></div>
                     <h2 id="result-message" class="text-2xl font-bold mb-2"></h2>
                     <p class="text-gray-600 mb-4">The actual price was <strong id="actual-price" class="font-bold"></strong>.</p>
-                    <button id="next-button" class="w-full bg-gray-800 text-white font-bold py-3 rounded-lg btn-primary hover:bg-gray-900">
-                        Next Item
-                    </button>
+                    <div class="space-y-3">
+                        <button id="share-score-btn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg btn-primary hover:bg-blue-600">
+                            Share Score
+                        </button>
+                        <button id="next-button" class="w-full bg-gray-800 text-white font-bold py-3 rounded-lg btn-primary hover:bg-gray-900">
+                            Next Item
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Streak Popup -->
     <div id="streak-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 popup-animation">
         <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-auto card-shadow">
             <div class="text-7xl mb-4">🎉</div>
@@ -165,7 +167,30 @@
         </div>
     </div>
     
-    <!-- Confirmation Popup for Clearing Scores -->
+    <div id="share-form-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 popup-animation">
+        <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-auto card-shadow">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Share Your Score!</h2>
+            <div class="space-y-4 text-left">
+                <div>
+                    <label for="your-name" class="block text-sm font-medium text-gray-700">Your Name/Nickname</label>
+                    <input type="text" id="your-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="partner-name" class="block text-sm font-medium text-gray-700">Partner's Name/Nickname</label>
+                    <input type="text" id="partner-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+            </div>
+            <div class="mt-8 flex space-x-4">
+                 <button id="cancel-share-btn" class="w-full bg-gray-300 text-gray-800 font-bold py-3 rounded-lg btn-primary hover:bg-gray-400">
+                    Cancel
+                </button>
+                <button id="confirm-share-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg btn-primary hover:bg-blue-700">
+                    Share on Facebook
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <div id="confirm-clear-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 popup-animation">
         <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-auto card-shadow">
             <div class="text-6xl mb-4">🤔</div>
@@ -185,6 +210,7 @@
     <script>
         // --- API Configuration ---
         const API_BASE_URL = 'https://kyp-exhy.onrender.com';
+        const APP_URL = 'https://your-app-url.com'; // Replace with your app's actual URL for the share link
 
         // --- Game Configurations (Static part) ---
         const gameConfigs = {
@@ -222,11 +248,15 @@
         const cancelClearBtn = document.getElementById('cancel-clear-btn');
         const confirmClearBtn = document.getElementById('confirm-clear-btn');
         const resultIcon = document.getElementById('result-icon');
+        const shareScoreBtn = document.getElementById('share-score-btn');
+        const shareFormPopup = document.getElementById('share-form-popup');
+        const cancelShareBtn = document.getElementById('cancel-share-btn');
+        const confirmShareBtn = document.getElementById('confirm-share-btn');
         
         // --- Game State ---
         let currentConfig = null, currentProduct = null, score = 0, streak = 0;
         let productsCache = {}; // Cache to store fetched products
-        let usedProductIndices = new Set();
+        let seenProductIds = new Set(); // To track seen articles in the current session
 
         // --- Core Functions ---
         async function fetchProducts(mode) {
@@ -234,14 +264,8 @@
                 return productsCache[mode]; // Return from cache if available
             }
             try {
-                // The original URL for your Render backend API
                 const originalUrl = `${API_BASE_URL}/api/products?gender_target=${mode}`;
-                
-                // Using a CORS proxy to prevent "Failed to fetch" errors.
-                // This error often happens if the backend server doesn't send the correct
-                // CORS headers, which the browser requires for cross-origin requests.
                 const proxiedUrl = `https://corsproxy.io/?${encodeURIComponent(originalUrl)}`;
-
                 const response = await fetch(proxiedUrl);
                 if (!response.ok) {
                     throw new Error(`API request failed with status ${response.status}`);
@@ -262,6 +286,10 @@
             gameScreen.classList.remove('hidden');
             gameContent.classList.add('hidden');
             loaderView.classList.remove('hidden');
+
+            // Reset seen products for the new session
+            seenProductIds = new Set(JSON.parse(localStorage.getItem(`${currentConfig.localStoragePrefix}_seenIds`) || '[]'));
+
 
             applyTheme();
             loadGameState();
@@ -295,6 +323,7 @@
         function saveGameState() {
             localStorage.setItem(`${currentConfig.localStoragePrefix}_score`, score.toString());
             localStorage.setItem(`${currentConfig.localStoragePrefix}_streak`, streak.toString());
+            localStorage.setItem(`${currentConfig.localStoragePrefix}_seenIds`, JSON.stringify(Array.from(seenProductIds)));
         }
 
         function loadGameState() {
@@ -323,15 +352,18 @@
                 return;
             };
 
-            if (usedProductIndices.size === products.length) usedProductIndices.clear();
+            const availableProducts = products.filter(p => !seenProductIds.has(p.id));
 
-            let productIndex;
-            do {
-                productIndex = Math.floor(Math.random() * products.length);
-            } while (usedProductIndices.has(productIndex));
+            if (availableProducts.length === 0) {
+                // All products have been seen, reset the list
+                alert("You've seen all the current items! Resetting the list for you.");
+                seenProductIds.clear();
+                currentProduct = products[Math.floor(Math.random() * products.length)];
+            } else {
+                currentProduct = availableProducts[Math.floor(Math.random() * availableProducts.length)];
+            }
             
-            usedProductIndices.add(productIndex);
-            currentProduct = products[productIndex];
+            seenProductIds.add(currentProduct.id);
 
             document.getElementById('product-brand').textContent = currentProduct.brand;
             document.getElementById('product-name').textContent = currentProduct.name;
@@ -427,6 +459,7 @@
                 const prefix = gameConfigs[mode].localStoragePrefix;
                 localStorage.removeItem(`${prefix}_score`);
                 localStorage.removeItem(`${prefix}_streak`);
+                localStorage.removeItem(`${prefix}_seenIds`);
             }
             confirmClearPopup.classList.add('hidden');
         }
@@ -446,6 +479,23 @@
                 
                 confetti.addEventListener('animationend', () => confetti.remove());
             }
+        }
+        
+        function handleFacebookShare() {
+            const yourName = document.getElementById('your-name').value.trim();
+            const partnerName = document.getElementById('partner-name').value.trim();
+            
+            if (!yourName || !partnerName) {
+                alert("Please enter both names!");
+                return;
+            }
+            
+            const shareTitle = `${yourName} knows ${partnerName} so well!`;
+            const shareQuote = `They scored ${score} points in the "Know Your Partner" challenge! How well do you know your partner? Play now!`;
+            const facebookShareUrl = `https://www.facebook.com/dialog/share?app_id=145634995501895&display=popup&href=${encodeURIComponent(APP_URL)}&quote=${encodeURIComponent(shareQuote)}`;
+
+            window.open(facebookShareUrl, '_blank', 'width=600,height=400');
+            shareFormPopup.classList.add('hidden');
         }
 
         // --- Event Listeners ---
@@ -471,6 +521,11 @@
         clearScoresBtn.addEventListener('click', () => confirmClearPopup.classList.remove('hidden'));
         cancelClearBtn.addEventListener('click', () => confirmClearPopup.classList.add('hidden'));
         confirmClearBtn.addEventListener('click', handleClearScores);
+        
+        // Share button listeners
+        shareScoreBtn.addEventListener('click', () => shareFormPopup.classList.remove('hidden'));
+        cancelShareBtn.addEventListener('click', () => shareFormPopup.classList.add('hidden'));
+        confirmShareBtn.addEventListener('click', handleFacebookShare);
 
     </script>
 </body>
