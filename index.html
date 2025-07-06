@@ -26,7 +26,8 @@
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            overflow: hidden; /* Prevent scrollbars from confetti */
+            /* Allow vertical scrolling for content that overflows */
+            overflow-y: auto;
         }
         .card-shadow {
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -80,15 +81,19 @@
         @keyframes fall {
             to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
+        /* Style for the scrollable game area */
+        #game-view {
+            max-height: calc(100vh - 120px); /* Adjust based on header/footer height */
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen">
     <!-- This is the template for the shareable image. It's hidden off-screen. -->
     <div id="share-card-template" class="fixed -left-[9999px] top-0 w-[600px] h-[315px] p-8 flex flex-col justify-center items-center text-white text-center" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">
-        <p class="text-2xl font-semibold">Couple Score</p>
-        <h2 class="text-3xl font-bold mt-1" id="share-card-names"></h2>
-        <p class="text-8xl font-extrabold my-2 py-2" id="share-card-score"></p>
-        <p class="text-xl font-semibold italic leading-tight max-w-md" id="share-card-message"></p>
+        <h2 class="text-2xl font-semibold leading-tight max-w-md" id="share-card-question"></h2>
+        <p class="text-3xl font-bold mt-4" id="share-card-scorer-line"></p>
+        <p class="text-8xl font-extrabold" id="share-card-score"></p>
         <p class="absolute bottom-4 text-sm opacity-80 font-semibold" id="share-card-url"></p>
     </div>
 
@@ -118,7 +123,7 @@
             <div class="w-full text-left mb-2">
                  <button id="back-to-home" class="text-gray-600 hover:text-gray-900 font-semibold transition">&larr; Back to Home</button>
             </div>
-            <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+            <div class="bg-white rounded-2xl card-shadow overflow-hidden flex flex-col">
                 <header id="game-header" class="p-4 text-white text-center">
                     <h1 id="game-title" class="text-2xl font-bold"></h1>
                     <div id="scoreboard" class="flex justify-around text-sm opacity-90 mt-2 font-semibold">
@@ -458,19 +463,10 @@
                 return;
             }
 
-            let cheesyMessage = '';
-            if (score >= 50) {
-                cheesyMessage = "That's a soulmate score! 💖 Think you can beat them?";
-            } else if (score >= 20) {
-                cheesyMessage = "They're totally in sync! ✨ Can your couple do better?";
-            } else {
-                cheesyMessage = "A solid start! ❤️ How well do you know your partner?";
-            }
-
-            // Populate the hidden share card template
-            document.getElementById('share-card-names').textContent = `${yourName} & ${partnerName}`;
+            // Populate the hidden share card template with the new text structure
+            document.getElementById('share-card-question').textContent = `How well do ${yourName} & ${partnerName} know each other's taste?`;
+            document.getElementById('share-card-scorer-line').textContent = `${yourName} Scored:`;
             document.getElementById('share-card-score').textContent = score;
-            document.getElementById('share-card-message').textContent = `"${cheesyMessage}"`;
             document.getElementById('share-card-url').textContent = `Check Yours: ${APP_URL.replace('https://', '')}`;
 
             const cardToCapture = document.getElementById('share-card-template');
