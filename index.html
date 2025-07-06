@@ -17,11 +17,12 @@
     <!-- IMPORTANT: Replace this placeholder with a URL to your own beautiful, branded share image (e.g., 1200x630 pixels). -->
     <meta property="og:image" content="https://placehold.co/1200x630/ec4899/FFFFFF?text=Know+Your+Partner+Challenge" />
 
-
+    <!-- Scripts -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -60,44 +61,37 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        /* Fun UI Animations */
-        .score-pop {
-            animation: score-pop-animation 0.6s ease-out;
-        }
+        .score-pop { animation: score-pop-animation 0.6s ease-out; }
         @keyframes score-pop-animation {
             0% { transform: scale(1); }
             50% { transform: scale(1.4) rotate(8deg); }
             100% { transform: scale(1); }
         }
-        .icon-pop {
-             animation: icon-pop-animation 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        }
+        .icon-pop { animation: icon-pop-animation 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
         @keyframes icon-pop-animation {
             0% { transform: scale(0.5); opacity: 0; }
             60% { transform: scale(1.2); opacity: 1; }
             100% { transform: scale(1); }
         }
-
-        /* Confetti Styles */
         .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 100;
-            animation: fall 3s linear forwards;
+            position: fixed; width: 10px; height: 10px; border-radius: 50%;
+            pointer-events: none; z-index: 100; animation: fall 3s linear forwards;
         }
         @keyframes fall {
-            to {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
-            }
+            to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
     </style>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen">
+    <!-- This is the template for the shareable image. It's hidden off-screen. -->
+    <div id="share-card-template" class="fixed -left-[9999px] top-0 w-[600px] h-[315px] p-8 flex flex-col justify-center items-center text-white text-center" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">
+        <p class="text-2xl font-semibold">Couple Score</p>
+        <h2 class="text-3xl font-bold mt-1" id="share-card-names"></h2>
+        <p class="text-8xl font-extrabold my-2 py-2" id="share-card-score"></p>
+        <p class="text-xl font-semibold italic leading-tight max-w-md" id="share-card-message"></p>
+        <p class="absolute bottom-4 text-sm opacity-80 font-semibold" id="share-card-url"></p>
+    </div>
+
     <div class="w-full max-w-sm mx-auto p-4">
         <!-- Home Screen -->
         <div id="home-screen" class="">
@@ -119,7 +113,7 @@
             </footer>
         </div>
 
-        <!-- Game Screen (initially hidden) -->
+        <!-- Game Screen -->
         <div id="game-screen" class="hidden">
             <div class="w-full text-left mb-2">
                  <button id="back-to-home" class="text-gray-600 hover:text-gray-900 font-semibold transition">&larr; Back to Home</button>
@@ -132,7 +126,6 @@
                         <span>Streak: <strong id="streak-display">0</strong> 🔥</span>
                     </div>
                 </header>
-
                 <main id="game-view" class="p-6">
                     <div id="loader-view" class="flex justify-center items-center h-96">
                         <div class="loader"></div>
@@ -155,7 +148,6 @@
                         </button>
                     </div>
                 </main>
-
                 <div id="result-view" class="hidden p-8 text-center popup-animation">
                     <div id="result-icon" class="text-8xl mb-4"></div>
                     <h2 id="result-message" class="text-2xl font-bold mb-2"></h2>
@@ -173,21 +165,17 @@
         </div>
     </div>
     
-    <!-- Streak Popup -->
+    <!-- Popups -->
     <div id="streak-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 popup-animation">
         <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-auto card-shadow">
             <div class="text-7xl mb-4">🎉</div>
             <h2 id="streak-popup-message" class="text-2xl font-bold text-gray-800 mb-6"></h2>
-            <button id="close-streak-popup" class="w-full text-white font-bold py-3 rounded-lg btn-primary">
-                Awesome!
-            </button>
+            <button id="close-streak-popup" class="w-full text-white font-bold py-3 rounded-lg btn-primary">Awesome!</button>
         </div>
     </div>
-    
-    <!-- Share Form Popup -->
     <div id="share-form-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 popup-animation">
         <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-auto card-shadow">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Share Your Score!</h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Create Your Share Image!</h2>
             <div class="space-y-4 text-left">
                 <div>
                     <label for="your-name" class="block text-sm font-medium text-gray-700">Your Name/Nickname</label>
@@ -199,40 +187,30 @@
                 </div>
             </div>
             <div class="mt-8 flex space-x-4">
-                 <button id="cancel-share-btn" class="w-full bg-gray-300 text-gray-800 font-bold py-3 rounded-lg btn-primary hover:bg-gray-400">
-                    Cancel
-                </button>
-                <button id="confirm-share-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg btn-primary hover:bg-blue-700">
-                    Share on Facebook
-                </button>
+                 <button id="cancel-share-btn" class="w-full bg-gray-300 text-gray-800 font-bold py-3 rounded-lg btn-primary hover:bg-gray-400">Cancel</button>
+                <button id="download-share-image-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg btn-primary hover:bg-blue-700">Download Image</button>
             </div>
         </div>
     </div>
-    
-    <!-- Confirmation Popup for Clearing Scores -->
     <div id="confirm-clear-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 popup-animation">
         <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-auto card-shadow">
             <div class="text-6xl mb-4">🤔</div>
             <h2 class="text-xl font-bold text-gray-800 mb-2">Are you sure?</h2>
             <p class="text-gray-600 mb-6">This will reset the scores and streaks for both players permanently.</p>
             <div class="flex space-x-4">
-                <button id="cancel-clear-btn" class="w-full bg-gray-300 text-gray-800 font-bold py-3 rounded-lg btn-primary hover:bg-gray-400">
-                    Cancel
-                </button>
-                <button id="confirm-clear-btn" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg btn-primary hover:bg-red-700">
-                    Yes, Clear
-                </button>
+                <button id="cancel-clear-btn" class="w-full bg-gray-300 text-gray-800 font-bold py-3 rounded-lg btn-primary hover:bg-gray-400">Cancel</button>
+                <button id="confirm-clear-btn" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg btn-primary hover:bg-red-700">Yes, Clear</button>
             </div>
         </div>
     </div>
+    <div id="toast-notification" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg popup-animation z-50"></div>
 
     <script>
         // --- API Configuration ---
         const API_BASE_URL = 'https://kyp-exhy.onrender.com';
-        // IMPORTANT: Replace with your app's actual deployed URL for the share link to work correctly.
         const APP_URL = 'https://mrizwan18.github.io/KYP/'; 
 
-        // --- Game Configurations (Static part) ---
+        // --- Game Configurations ---
         const gameConfigs = {
             wife: {
                 title: 'Know Your Wife', themeColor: 'pink', localStoragePrefix: 'kyw_wife',
@@ -271,27 +249,24 @@
         const shareScoreBtn = document.getElementById('share-score-btn');
         const shareFormPopup = document.getElementById('share-form-popup');
         const cancelShareBtn = document.getElementById('cancel-share-btn');
-        const confirmShareBtn = document.getElementById('confirm-share-btn');
+        const downloadShareImageBtn = document.getElementById('download-share-image-btn');
+        const toastNotification = document.getElementById('toast-notification');
         
         // --- Game State ---
         let currentConfig = null, currentProduct = null, score = 0, streak = 0;
-        let productsCache = {}; // Cache to store fetched products
-        let seenProductIds = new Set(); // To track seen articles in the current session
+        let productsCache = {};
+        let seenProductIds = new Set();
 
         // --- Core Functions ---
         async function fetchProducts(mode) {
-            if (productsCache[mode] && productsCache[mode].length > 0) {
-                return productsCache[mode]; // Return from cache if available
-            }
+            if (productsCache[mode] && productsCache[mode].length > 0) return productsCache[mode];
             try {
                 const originalUrl = `${API_BASE_URL}/api/products?gender_target=${mode}`;
                 const proxiedUrl = `https://corsproxy.io/?${encodeURIComponent(originalUrl)}`;
                 const response = await fetch(proxiedUrl);
-                if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
                 const data = await response.json();
-                productsCache[mode] = data; // Cache the result
+                productsCache[mode] = data;
                 return data;
             } catch (error) {
                 console.error("API Error:", error);
@@ -306,21 +281,13 @@
             gameScreen.classList.remove('hidden');
             gameContent.classList.add('hidden');
             loaderView.classList.remove('hidden');
-
-            // Reset seen products for the new session
             seenProductIds = new Set(JSON.parse(localStorage.getItem(`${currentConfig.localStoragePrefix}_seenIds`) || '[]'));
-
-
             applyTheme();
             loadGameState();
             updateScoreboard();
-
             const products = await fetchProducts(mode);
-            if(products && products.length > 0) {
-                loadRandomProduct(products);
-            } else {
-                goHome(); // Go back home if no products could be loaded
-            }
+            if(products && products.length > 0) loadRandomProduct(products);
+            else goHome();
         }
 
         function goHome() {
@@ -354,45 +321,29 @@
         function updateScoreboard(animate) {
             scoreDisplay.textContent = score;
             streakDisplay.textContent = `${streak} 🔥`;
-            if (animate?.score) {
-                scoreDisplay.parentElement.classList.add('score-pop');
-                scoreDisplay.parentElement.addEventListener('animationend', () => scoreDisplay.parentElement.classList.remove('score-pop'), { once: true });
-            }
-            if (animate?.streak) {
-                streakDisplay.parentElement.classList.add('score-pop');
-                streakDisplay.parentElement.addEventListener('animationend', () => streakDisplay.parentElement.classList.remove('score-pop'), { once: true });
-            }
+            if (animate?.score) scoreDisplay.parentElement.classList.add('score-pop');
+            if (animate?.streak) streakDisplay.parentElement.classList.add('score-pop');
+            if(animate) scoreDisplay.parentElement.addEventListener('animationend', () => scoreDisplay.parentElement.classList.remove('score-pop'), { once: true });
         }
         
         function loadRandomProduct(products) {
             gameTitle.textContent = currentConfig.title;
-            if (!products || products.length === 0) {
-                alert("No products available for this category.");
-                goHome();
-                return;
-            };
-
+            if (!products || products.length === 0) { alert("No products available for this category."); goHome(); return; }
             const availableProducts = products.filter(p => !seenProductIds.has(p.id));
-
             if (availableProducts.length === 0) {
-                // All products have been seen, reset the list
                 alert("You've seen all the current items! Resetting the list for you.");
                 seenProductIds.clear();
                 currentProduct = products[Math.floor(Math.random() * products.length)];
             } else {
                 currentProduct = availableProducts[Math.floor(Math.random() * availableProducts.length)];
             }
-            
             seenProductIds.add(currentProduct.id);
-
             document.getElementById('product-brand').textContent = currentProduct.brand;
             document.getElementById('product-name').textContent = currentProduct.name;
-            
             const mainImageUrl = currentProduct.imageUrls[0];
             const productImage = document.getElementById('product-image');
             productImage.src = mainImageUrl;
             productImage.onerror = () => { productImage.src = `https://placehold.co/600x600/CCCCCC/FFFFFF?text=Image+Not+Found`; };
-            
             const imageGallery = document.getElementById('image-gallery');
             imageGallery.innerHTML = '';
             if (currentProduct.imageUrls && currentProduct.imageUrls.length > 1) {
@@ -411,7 +362,6 @@
                     imageGallery.appendChild(thumb);
                 });
             }
-            
             priceGuessInput.value = '';
             resultView.classList.add('hidden');
             gameContent.classList.remove('hidden');
@@ -429,44 +379,36 @@
                 }, 2000);
                 return;
             }
-
             const price = currentProduct.price;
             const accuracy = 100 - (Math.abs(price - guess) / price) * 100;
-
             let message = '', icon = '', animation = {};
             const results = currentConfig.results;
-
             if (accuracy >= 85) {
                 message = results.high; icon = '💖'; score += 10; streak++;
                 animation = { score: true, streak: true };
                 triggerConfetti();
                 checkStreakMilestones();
             } else if (accuracy >= 50) {
-                message = results.mid; icon = '�'; streak = 0;
+                message = results.mid; icon = '🤔'; streak = 0;
                 animation = { streak: true };
             } else {
                 message = results.low; icon = '😬'; streak = 0;
                 animation = { streak: true };
             }
-            
             updateScoreboard(animation);
             saveGameState();
-            
             document.getElementById('result-message').textContent = message;
             resultIcon.textContent = icon;
             resultIcon.classList.add('icon-pop');
             resultIcon.addEventListener('animationend', () => resultIcon.classList.remove('icon-pop'), { once: true });
             document.getElementById('actual-price').textContent = `PKR ${price.toLocaleString()}`;
-            
             gameContent.classList.add('hidden');
             resultView.classList.remove('hidden');
         }
 
         function checkStreakMilestones() {
             const streakMessages = currentConfig.streakMessages;
-            if (streakMessages[streak]) {
-                showStreakPopup(streakMessages[streak]);
-            }
+            if (streakMessages[streak]) showStreakPopup(streakMessages[streak]);
         }
 
         function showStreakPopup(message) {
@@ -496,25 +438,57 @@
                 confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 90%, 65%)`;
                 confetti.style.transform = `scale(${Math.random() + 0.5})`;
                 container.appendChild(confetti);
-                
                 confetti.addEventListener('animationend', () => confetti.remove());
             }
         }
+
+        function showToast(message) {
+            toastNotification.textContent = message;
+            toastNotification.classList.remove('hidden');
+            setTimeout(() => {
+                toastNotification.classList.add('hidden');
+            }, 3000);
+        }
         
-        function handleFacebookShare() {
+        function generateAndDownloadShareImage() {
             const yourName = document.getElementById('your-name').value.trim();
             const partnerName = document.getElementById('partner-name').value.trim();
-            
             if (!yourName || !partnerName) {
                 alert("Please enter both names!");
                 return;
             }
-            
-            const shareQuote = `${yourName} just proved how well they know ${partnerName} with a score of ${score}! 🔥 Think you can do better?`;
-            const facebookShareUrl = `https://www.facebook.com/dialog/share?app_id=145634995501895&display=popup&href=${encodeURIComponent(APP_URL)}&quote=${encodeURIComponent(shareQuote)}`;
 
-            window.open(facebookShareUrl, '_blank', 'width=600,height=400');
-            shareFormPopup.classList.add('hidden');
+            let cheesyMessage = '';
+            if (score >= 50) {
+                cheesyMessage = "That's a soulmate score! 💖 Think you can beat them?";
+            } else if (score >= 20) {
+                cheesyMessage = "They're totally in sync! ✨ Can your couple do better?";
+            } else {
+                cheesyMessage = "A solid start! ❤️ How well do you know your partner?";
+            }
+
+            // Populate the hidden share card template
+            document.getElementById('share-card-names').textContent = `${yourName} & ${partnerName}`;
+            document.getElementById('share-card-score').textContent = score;
+            document.getElementById('share-card-message').textContent = `"${cheesyMessage}"`;
+            document.getElementById('share-card-url').textContent = `Check Yours: ${APP_URL.replace('https://', '')}`;
+
+            const cardToCapture = document.getElementById('share-card-template');
+
+            html2canvas(cardToCapture, { 
+                useCORS: true, 
+                backgroundColor: null 
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `kyp-score-${yourName}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                shareFormPopup.classList.add('hidden');
+                showToast("Image downloaded! Ready to share.");
+            }).catch(err => {
+                console.error("oops, something went wrong!", err);
+                alert("Sorry, could not generate the image.");
+            });
         }
 
         // --- Event Listeners ---
@@ -541,10 +515,9 @@
         cancelClearBtn.addEventListener('click', () => confirmClearPopup.classList.add('hidden'));
         confirmClearBtn.addEventListener('click', handleClearScores);
         
-        // Share button listeners
         shareScoreBtn.addEventListener('click', () => shareFormPopup.classList.remove('hidden'));
         cancelShareBtn.addEventListener('click', () => shareFormPopup.classList.add('hidden'));
-        confirmShareBtn.addEventListener('click', handleFacebookShare);
+        downloadShareImageBtn.addEventListener('click', generateAndDownloadShareImage);
 
     </script>
 </body>
