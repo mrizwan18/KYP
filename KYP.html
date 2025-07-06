@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KYW - For Couples</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body {
+font-family: 'Poppins', sans-serif;
+overflow: hidden; /* Prevent scrollbars from confetti */
+}
+.card-shadow {
+box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+.btn-primary {
+transition: all 0.3s ease;
+transform-style: preserve-3d;
+}
+.btn-primary:hover {
+transform: translateY(-3px) scale(1.02);
+box-shadow: 0 10px 20px -5px rgba(0,0,0,0.2);
+}
+.popup-animation {
+animation: popup-in 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+@keyframes popup-in {
+0% { opacity: 0; transform: scale(0.9); }
+100% { opacity: 1; transform: scale(1); }
+}
+#image-gallery::-webkit-scrollbar { display: none; }
+#image-gallery { -ms-overflow-style: none; scrollbar-width: none; }
+.loader {
+border: 4px solid #f3f3f3;
+border-radius: 50%;
+width: 40px;
+height: 40px;
+animation: spin 1s linear infinite;
+}
+#loader-view.wife .loader { border-top: 4px solid #ec4899; }
+#loader-view.husband .loader { border-top: 4px solid #3b82f6; }
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}
+
+/* Fun UI Animations */
+.score-pop {
+animation: score-pop-animation 0.6s ease-out;
+}
+@keyframes score-pop-animation {
+0% { transform: scale(1); }
+50% { transform: scale(1.4) rotate(8deg); }
+100% { transform: scale(1); }
+}
+.icon-pop {
+animation: icon-pop-animation 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+@keyframes icon-pop-animation {
+0% { transform: scale(0.5); opacity: 0; }
+60% { transform: scale(1.2); opacity: 1; }
+100% { transform: scale(1); }
+}
+
+/* Confetti Styles */
+.confetti {
+position: fixed;
+width: 10px;
+height: 10px;
+border-radius: 50%;
+pointer-events: none;
+z-index: 100;
+animation: fall 3s linear forwards;
+}
+@keyframes fall {
+to {
+transform: translateY(100vh) rotate(720deg);
+opacity: 0;
+}
+}
+</style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+<div class="w-full max-w-sm mx-auto p-4">
+<!-- Home Screen -->
+<div id="home-screen" class="">
+<div class="bg-white rounded-2xl card-shadow p-8 text-center">
+<h1 class="text-3xl font-bold text-gray-800">Welcome to KYP</h1>
+<p class="text-gray-500 mt-2 mb-8">Who is playing?</p>
+<div class="space-y-4">
+<button data-mode="wife" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold py-4 rounded-lg btn-primary text-lg">
+Play: Know Your Wife
+</button>
+<button data-mode="husband" class="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold py-4 rounded-lg btn-primary text-lg">
+Play: Know Your Husband
+</button>
+</div>
+</div>
+<footer class="text-center text-gray-500 text-xs mt-4 space-y-2">
+<button id="clear-scores-btn" class="text-gray-500 hover:text-red-500 transition">Clear All Scores</button>
+<p>Made with ❤️ for couples</p>
+</footer>
+</div>
+
+<!-- Game Screen (initially hidden) -->
+<div id="game-screen" class="hidden">
+<div class="w-full text-left mb-2">
+<button id="back-to-home" class="text-gray-600 hover:text-gray-900 font-semibold transition">&larr; Back to Home</button>
+</div>
+<div class="bg-white rounded-2xl card-shadow overflow-hidden">
+<header id="game-header" class="p-4 text-white text-center">
+<h1 id="game-title" class="text-2xl font-bold"></h1>
+<div id="scoreboard" class="flex justify-around text-sm opacity-90 mt-2 font-semibold">
+<span>Score: <strong id="score-display">0</strong></span>
+<span>Streak: <strong id="streak-display">0</strong> 🔥</span>
+</div>
+</header>
+
+<main id="game-view" class="p-6">
+<div id="loader-view" class="flex justify-center items-center h-96">
+<div class="loader"></div>
+</div>
+<div id="game-content" class="hidden">
+<div class="mb-2 rounded-lg overflow-hidden bg-gray-200">
+<img id="product-image" src="" alt="Product Image" class="w-full h-auto object-cover aspect-square">
+</div>
+<div id="image-gallery" class="flex overflow-x-auto space-x-2 pb-2 mb-4"></div>
+<div class="text-center mb-6">
+<h2 id="product-brand" class="text-lg font-semibold text-gray-400"></h2>
+<p id="product-name" class="text-xl font-bold text-gray-800"></p>
+</div>
+<div class="mb-4">
+<label for="price-guess" class="block text-sm font-medium text-gray-700 text-center mb-2">Guess the Price (PKR)</label>
+<input type="number" id="price-guess" placeholder="e.g., 8000" class="w-full px-4 py-3 text-center text-lg border-2 border-gray-300 rounded-lg transition">
+</div>
+<button id="guess-button" class="w-full text-white font-bold py-3 rounded-lg btn-primary">
+Lock in your Guess!
+</button>
+</div>
+</main>
+
+<div id="result-view" class="hidden p-8 text-center popup-animation">
+<div id="result-icon" class="text-8xl mb-4"></div>
+<h2 id="result-message" class="text-2xl font-bold mb-2"></h2>
+<p class="text-gray-600 mb-4">The actual price was <strong id="actual-price" class="font-bold"></strong>.</p>
+<button id="next-button" class="w-full bg-gray-800 text-white font-bold py-3 rounded-lg btn-primary hover:bg-gray-900">
+Next Item
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Streak Popup -->
+<div id="streak-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 popup-animation">
+<div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-auto card-shadow">
+<div class="text-7xl mb-4">🎉</div>
+<h2 id="streak-popup-message" class="text-2xl font-bold text-gray-800 mb-6"></h2>
+<button id="close-streak-popup" class="w-full text-white font-bold py-3 rounded-lg btn-primary">
+Awesome!
+</button>
+</div>
+</div>
+
+<!-- Confirmation Popup for Clearing Scores -->
+<div id="confirm-clear-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 popup-animation">
+<div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-auto card-shadow">
+<div class="text-6xl mb-4">🤔</div>
+<h2 class="text-xl font-bold text-gray-800 mb-2">Are you sure?</h2>
+<p class="text-gray-600 mb-6">This will reset the scores and streaks for both players permanently.</p>
+<div class="flex space-x-4">
+<button id="cancel-clear-btn" class="w-full bg-gray-300 text-gray-800 font-bold py-3 rounded-lg btn-primary hover:bg-gray-400">
+Cancel
+</button>
+<button id="confirm-clear-btn" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg btn-primary hover:bg-red-700">
+Yes, Clear
+</button>
+</div>
+</div>
+</div>
+
+<script>
+// --- Game Configurations ---
+const gameConfigs = {
+wife: {
+title: 'Know Your Wife', themeColor: 'pink', localStoragePrefix: 'kyw_wife',
+products: [
+{ brand: 'Sapphire', name: 'Icon Women’s Perfume', price: 2245, imageUrls: ['https://pk.sapphireonline.pk/dw/image/v2/BKSB_PRD/on/demandware.static/-/Sites-sapphire-master-catalog/default/dw67e211e3/images/11feb25UpdatedImages/000000FRL020_3.JPG'] },
+{ brand: 'Khaadi', name: 'Fabrics 3 Piece Suit', price: 5000, imageUrls: ['https://pk.khaadi.com/dw/image/v2/BJTG_PRD/on/demandware.static/-/Sites-khaadi-master-catalog/default/dw0c272103/images/hi-res/ss2394b_multi_1.jpg?sw=800&sh=1200'] },
+],
+results: { high: 'Soulmates for a reason!', mid: 'You need some Couple Time.', low: 'Bring your game up, brother!' },
+streakMessages: { 10: 'Your wife owes you a hug right now.', 15: 'Your wife needs to take you on a date my guy. You earned it.' }
+},
+husband: {
+title: 'Know Your Husband', themeColor: 'blue', localStoragePrefix: 'kyw_husband',
+products: [
+{ brand: 'J.', name: 'Men\'s Leather Wallet', price: 3500, imageUrls: ['https://placehold.co/600x600/3B82F6/FFFFFF?text=J.+Wallet'] },
+{ brand: 'Cougar', name: 'Casual Check Shirt', price: 4200, imageUrls: ['https://placehold.co/600x600/1D4ED8/FFFFFF?text=Cougar+Shirt'] },
+],
+results: { high: 'You know your man!', mid: 'Time for a boys night recap!', low: 'Ouch! Better luck next time.' },
+streakMessages: { 10: 'Your husband owes you a treat!', 15: 'He needs to plan the next movie night. You earned it!' }
+}
+};
+
+// --- DOM Elements ---
+const homeScreen = document.getElementById('home-screen');
+const gameScreen = document.getElementById('game-screen');
+const backToHomeBtn = document.getElementById('back-to-home');
+const gameHeader = document.getElementById('game-header');
+const gameTitle = document.getElementById('game-title');
+const guessButton = document.getElementById('guess-button');
+const priceGuessInput = document.getElementById('price-guess');
+const resultView = document.getElementById('result-view');
+const loaderView = document.getElementById('loader-view');
+const gameContent = document.getElementById('game-content');
+const nextButton = document.getElementById('next-button');
+const scoreDisplay = document.getElementById('score-display');
+const streakDisplay = document.getElementById('streak-display');
+const streakPopup = document.getElementById('streak-popup');
+const streakPopupMessage = document.getElementById('streak-popup-message');
+const closeStreakPopupButton = document.getElementById('close-streak-popup');
+const clearScoresBtn = document.getElementById('clear-scores-btn');
+const confirmClearPopup = document.getElementById('confirm-clear-popup');
+const cancelClearBtn = document.getElementById('cancel-clear-btn');
+const confirmClearBtn = document.getElementById('confirm-clear-btn');
+const resultIcon = document.getElementById('result-icon');
+
+// --- Game State ---
+let currentConfig = null, currentProduct = null, score = 0, streak = 0;
+let usedProductIndices = new Set();
+
+// --- Core Functions ---
+function startGame(mode) {
+currentConfig = gameConfigs[mode];
+homeScreen.classList.add('hidden');
+gameScreen.classList.remove('hidden');
+applyTheme();
+loadGameState();
+updateScoreboard();
+loadRandomProduct();
+}
+
+function goHome() {
+gameScreen.classList.add('hidden');
+homeScreen.classList.remove('hidden');
+currentConfig = null;
+}
+
+function applyTheme() {
+const color = currentConfig.themeColor;
+const gradient = color === 'pink' ? 'from-pink-500 to-rose-500' : 'from-blue-500 to-indigo-500';
+gameHeader.className = `p-4 text-white text-center bg-gradient-to-r ${gradient}`;
+loaderView.className = `flex justify-center items-center h-96 ${currentConfig.localStoragePrefix.split('_')[1]}`;
+guessButton.className = `w-full text-white font-bold py-3 rounded-lg btn-primary bg-gradient-to-r ${gradient}`;
+priceGuessInput.className = `w-full px-4 py-3 text-center text-lg border-2 border-gray-300 rounded-lg transition focus:ring-${color}-500 focus:border-${color}-500`;
+document.getElementById('actual-price').className = `font-bold text-${color}-600`;
+closeStreakPopupButton.className = `w-full text-white font-bold py-3 rounded-lg btn-primary bg-gradient-to-r ${gradient}`;
+}
+
+function saveGameState() {
+localStorage.setItem(`${currentConfig.localStoragePrefix}_score`, score.toString());
+localStorage.setItem(`${currentConfig.localStoragePrefix}_streak`, streak.toString());
+}
+
+function loadGameState() {
+score = parseInt(localStorage.getItem(`${currentConfig.localStoragePrefix}_score`)) || 0;
+streak = parseInt(localStorage.getItem(`${currentConfig.localStoragePrefix}_streak`)) || 0;
+}
+
+function updateScoreboard(animate) {
+scoreDisplay.textContent = score;
+streakDisplay.textContent = `${streak} �`;
+if (animate?.score) {
+scoreDisplay.parentElement.classList.add('score-pop');
+scoreDisplay.parentElement.addEventListener('animationend', () => scoreDisplay.parentElement.classList.remove('score-pop'), { once: true });
+}
+if (animate?.streak) {
+streakDisplay.parentElement.classList.add('score-pop');
+streakDisplay.parentElement.addEventListener('animationend', () => streakDisplay.parentElement.classList.remove('score-pop'), { once: true });
+}
+}
+
+function loadRandomProduct() {
+gameTitle.textContent = currentConfig.title;
+const products = currentConfig.products;
+if (products.length === 0) return;
+
+if (usedProductIndices.size === products.length) usedProductIndices.clear();
+
+let productIndex;
+do {
+productIndex = Math.floor(Math.random() * products.length);
+} while (usedProductIndices.has(productIndex));
+
+usedProductIndices.add(productIndex);
+currentProduct = products[productIndex];
+
+document.getElementById('product-brand').textContent = currentProduct.brand;
+document.getElementById('product-name').textContent = currentProduct.name;
+
+const mainImageUrl = currentProduct.imageUrls[0];
+const productImage = document.getElementById('product-image');
+productImage.src = mainImageUrl;
+productImage.onerror = () => { productImage.src = `https://placehold.co/600x600/CCCCCC/FFFFFF?text=Image+Not+Found`; };
+
+const imageGallery = document.getElementById('image-gallery');
+imageGallery.innerHTML = '';
+if (currentProduct.imageUrls.length > 1) {
+currentProduct.imageUrls.forEach((url, index) => {
+const thumb = document.createElement('img');
+thumb.src = url;
+thumb.alt = `${currentProduct.name} view ${index + 1}`;
+const color = currentConfig.themeColor;
+thumb.className = `h-20 w-20 object-cover rounded-md cursor-pointer border-2 hover:border-${color}-500 transition`;
+thumb.classList.add(index === 0 ? `border-${color}-500` : 'border-transparent');
+thumb.addEventListener('click', () => {
+productImage.src = url;
+document.querySelectorAll('#image-gallery img').forEach(img => img.classList.replace(`border-${color}-500`, 'border-transparent'));
+thumb.classList.replace('border-transparent', `border-${color}-500`);
+});
+imageGallery.appendChild(thumb);
+});
+}
+
+priceGuessInput.value = '';
+resultView.classList.add('hidden');
+gameContent.classList.remove('hidden');
+loaderView.classList.add('hidden');
+}
+
+function handleGuess() {
+const guess = parseFloat(priceGuessInput.value);
+if (isNaN(guess) || guess <= 0) {
+priceGuessInput.classList.add('border-red-500');
+priceGuessInput.placeholder = "Enter a valid price!";
+setTimeout(() => {
+priceGuessInput.classList.remove('border-red-500');
+priceGuessInput.placeholder = "e.g., 8000";
+}, 2000);
+return;
+}
+
+const price = currentProduct.price;
+const accuracy = 100 - (Math.abs(price - guess) / price) * 100;
+
+let message = '', icon = '', animation = {};
+const results = currentConfig.results;
+
+if (accuracy >= 85) {
+message = results.high; icon = '💖'; score += 10; streak++;
+animation = { score: true, streak: true };
+triggerConfetti();
+} else if (accuracy >= 50) {
+message = results.mid; icon = '🤔'; streak = 0;
+animation = { streak: true };
+} else {
+message = results.low; icon = '😬'; streak = 0;
+animation = { streak: true };
+}
+
+updateScoreboard(animation);
+saveGameState();
+
+document.getElementById('result-message').textContent = message;
+resultIcon.textContent = icon;
+resultIcon.classList.add('icon-pop');
+resultIcon.addEventListener('animationend', () => resultIcon.classList.remove('icon-pop'), { once: true });
+document.getElementById('actual-price').textContent = `PKR ${price.toLocaleString()}`;
+
+gameContent.classList.add('hidden');
+resultView.classList.remove('hidden');
+}
+
+function checkStreakMilestones() {
+const streakMessages = currentConfig.streakMessages;
+if (streakMessages[streak]) {
+showStreakPopup(streakMessages[streak]);
+}
+}
+
+function showStreakPopup(message) {
+streakPopupMessage.textContent = message;
+streakPopup.classList.remove('hidden');
+}
+
+function handleClearScores() {
+for (const mode in gameConfigs) {
+const prefix = gameConfigs[mode].localStoragePrefix;
+localStorage.removeItem(`${prefix}_score`);
+localStorage.removeItem(`${prefix}_streak`);
+}
+confirmClearPopup.classList.add('hidden');
+}
+
+function triggerConfetti() {
+const confettiCount = 100;
+const container = document.body;
+for (let i = 0; i < confettiCount; i++) {
+const confetti = document.createElement('div');
+confetti.classList.add('confetti');
+confetti.style.left = Math.random() * 100 + 'vw';
+confetti.style.top = (Math.random() * -100) + 'px';
+confetti.style.animationDelay = Math.random() * 0.5 + 's';
+confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 90%, 65%)`;
+confetti.style.transform = `scale(${Math.random() + 0.5})`;
+container.appendChild(confetti);
+
+confetti.addEventListener('animationend', () => confetti.remove());
+}
+}
+
+// --- Event Listeners ---
+document.querySelectorAll('#home-screen button[data-mode]').forEach(button => {
+button.addEventListener('click', (e) => startGame(e.currentTarget.dataset.mode));
+});
+
+backToHomeBtn.addEventListener('click', goHome);
+guessButton.addEventListener('click', handleGuess);
+nextButton.addEventListener('click', () => {
+gameContent.classList.add('hidden');
+loaderView.classList.remove('hidden');
+setTimeout(loadRandomProduct, 300);
+});
+priceGuessInput.addEventListener('keypress', (event) => {
+if (event.key === 'Enter') handleGuess();
+});
+closeStreakPopupButton.addEventListener('click', () => {
+streakPopup.classList.add('hidden');
+});
+
+clearScoresBtn.addEventListener('click', () => confirmClearPopup.classList.remove('hidden'));
+cancelClearBtn.addEventListener('click', () => confirmClearPopup.classList.add('hidden'));
+confirmClearBtn.addEventListener('click', handleClearScores);
+
+</script>
+</body>
+</html>
+�
