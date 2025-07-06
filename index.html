@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KYW - For Couples</title>
+
+    <!-- 
+      --- Facebook Open Graph Meta Tags for Rich Sharing ---
+      These tags tell Facebook how to display your link when it's shared.
+      The 'og:image' is the most important for creating an image-based post.
+    -->
+    <meta property="og:url" content="https://mrizwan18.github.io/KYP/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Know Your Partner - The Ultimate Couple's Challenge!" />
+    <meta property="og:description" content="How well do you really know your partner's taste? Take the challenge, guess the price, and find out!" />
+    <!-- IMPORTANT: Replace this placeholder with a URL to your own beautiful, branded share image (e.g., 1200x630 pixels). -->
+    <meta property="og:image" content="https://placehold.co/1200x630/ec4899/FFFFFF?text=Know+Your+Partner+Challenge" />
+
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -85,6 +99,7 @@
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen">
     <div class="w-full max-w-sm mx-auto p-4">
+        <!-- Home Screen -->
         <div id="home-screen" class="">
             <div class="bg-white rounded-2xl card-shadow p-8 text-center">
                 <h1 class="text-3xl font-bold text-gray-800">Welcome to KYP</h1>
@@ -104,6 +119,7 @@
             </footer>
         </div>
 
+        <!-- Game Screen (initially hidden) -->
         <div id="game-screen" class="hidden">
             <div class="w-full text-left mb-2">
                  <button id="back-to-home" class="text-gray-600 hover:text-gray-900 font-semibold transition">&larr; Back to Home</button>
@@ -157,6 +173,7 @@
         </div>
     </div>
     
+    <!-- Streak Popup -->
     <div id="streak-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 popup-animation">
         <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-auto card-shadow">
             <div class="text-7xl mb-4">🎉</div>
@@ -167,6 +184,7 @@
         </div>
     </div>
     
+    <!-- Share Form Popup -->
     <div id="share-form-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 popup-animation">
         <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-auto card-shadow">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Share Your Score!</h2>
@@ -191,6 +209,7 @@
         </div>
     </div>
     
+    <!-- Confirmation Popup for Clearing Scores -->
     <div id="confirm-clear-popup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 popup-animation">
         <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-auto card-shadow">
             <div class="text-6xl mb-4">🤔</div>
@@ -210,7 +229,8 @@
     <script>
         // --- API Configuration ---
         const API_BASE_URL = 'https://kyp-exhy.onrender.com';
-        const APP_URL = 'https://your-app-url.com'; // Replace with your app's actual URL for the share link
+        // IMPORTANT: Replace with your app's actual deployed URL for the share link to work correctly.
+        const APP_URL = 'https://kyp-exhy.onrender.com'; 
 
         // --- Game Configurations (Static part) ---
         const gameConfigs = {
@@ -422,7 +442,7 @@
                 triggerConfetti();
                 checkStreakMilestones();
             } else if (accuracy >= 50) {
-                message = results.mid; icon = '🤔'; streak = 0;
+                message = results.mid; icon = '�'; streak = 0;
                 animation = { streak: true };
             } else {
                 message = results.low; icon = '😬'; streak = 0;
@@ -490,8 +510,7 @@
                 return;
             }
             
-            const shareTitle = `${yourName} knows ${partnerName} so well!`;
-            const shareQuote = `They scored ${score} points in the "Know Your Partner" challenge! How well do you know your partner? Play now!`;
+            const shareQuote = `${yourName} just proved how well they know ${partnerName} with a score of ${score}! 🔥 Think you can do better?`;
             const facebookShareUrl = `https://www.facebook.com/dialog/share?app_id=145634995501895&display=popup&href=${encodeURIComponent(APP_URL)}&quote=${encodeURIComponent(shareQuote)}`;
 
             window.open(facebookShareUrl, '_blank', 'width=600,height=400');
@@ -530,3 +549,4 @@
     </script>
 </body>
 </html>
+�
